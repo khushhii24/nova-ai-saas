@@ -54,6 +54,7 @@ import {
   EyeOff,
   Lock,
   LogIn,
+  Pause,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -81,6 +82,7 @@ export const icons = {
   search: Search,
   filter: Funnel,
   play: Play,
+  pause: Pause,
   replay: RotateCcw,
   info: Info,
 
