@@ -1,0 +1,402 @@
+@import '@fontsource-variable/bricolage-grotesque/opsz.css';
+@import '@fontsource-variable/instrument-sans';
+@import '@fontsource/instrument-serif/400.css';
+@import '@fontsource/instrument-serif/400-italic.css';
+@import '@fontsource-variable/jetbrains-mono';
+@import 'tailwindcss';
+
+/* ==========================================================================
+   NOVA — DESIGN TOKENS
+   One warm-charcoal surface ramp + exactly one accent (golden amber).
+   Everything else is typography, spacing and hairlines.
+   ========================================================================== */
+
+@theme {
+  /* --- Surfaces ---------------------------------------------------------- */
+  --color-canvas: #0b0a09;      /* page background — warm near-black */
+  --color-canvas-deep: #060505; /* deeper wells, footer, insets */
+  --color-surface: #131110;     /* cards, panels */
+  --color-elevated: #1b1917;    /* raised panels, popovers, app chrome */
+  --color-raised: #232019;      /* hover / active surface */
+
+  /* --- Lines ------------------------------------------------------------- */
+  --color-line: #262220;        /* default hairline */
+  --color-line-strong: #38322e; /* emphasised divider */
+
+  /* --- Text -------------------------------------------------------------- */
+  /* Contrast against --color-canvas is noted for each. Muted is the floor:
+     it carries 9–11px mono meta labels, so it is pinned at the lightest value
+     that still reads as a third step below secondary while clearing 4.5:1 on
+     canvas, surface AND elevated. */
+  --color-primary: #f5f2ed;     /* warm white — headings.       17.7:1 */
+  --color-secondary: #a8a099;   /* body copy, descriptions.      7.7:1 */
+  --color-muted: #8a837a;       /* captions, meta, disabled.     5.3:1 */
+
+  /* --- Accent (use sparingly) -------------------------------------------- */
+  --color-accent: #f2b13c;
+  --color-accent-hover: #ffc65c;
+  --color-accent-press: #d99c26;
+  --color-accent-ink: #15110a;  /* text that sits on accent fills */
+
+  /* --- Semantic ---------------------------------------------------------- */
+  --color-success: #4fbe87;
+  --color-warning: #f98e4f;
+  --color-error: #e04f5f;
+
+  /* --- Type families ----------------------------------------------------- */
+  /* Display face. Bricolage Grotesque is deliberately humanist and slightly
+     irregular — the counter to the neutral grotesques every SaaS page reaches
+     for. Its optical-size axis tightens the letterforms as the type grows, so
+     large headings look drawn rather than scaled up. */
+  --font-display: 'Bricolage Grotesque Variable', 'Instrument Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Instrument Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  /* --- Type scale (fluid, editorial) ------------------------------------- */
+  --text-display: clamp(2.75rem, 7.2vw, 6rem);
+  --text-display--line-height: 0.94;
+  --text-display--letter-spacing: -0.03em;
+
+  --text-h1: clamp(2.25rem, 4.6vw, 3.75rem);
+  --text-h1--line-height: 1.02;
+  --text-h1--letter-spacing: -0.025em;
+
+  --text-h2: clamp(1.875rem, 3.3vw, 3rem);
+  --text-h2--line-height: 1.06;
+  --text-h2--letter-spacing: -0.021em;
+
+  --text-h3: clamp(1.25rem, 1.8vw, 1.625rem);
+  --text-h3--line-height: 1.2;
+  --text-h3--letter-spacing: -0.017em;
+
+  --text-lead: clamp(1.0625rem, 1.25vw, 1.25rem);
+  --text-lead--line-height: 1.55;
+  --text-lead--letter-spacing: -0.011em;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.65;
+  --text-body--letter-spacing: -0.006em;
+
+  --text-caption: 0.875rem;
+  --text-caption--line-height: 1.5;
+
+  --text-micro: 0.8125rem;
+  --text-micro--line-height: 1.45;
+
+  --text-kicker: 0.6875rem;
+  --text-kicker--line-height: 1;
+  --text-kicker--letter-spacing: 0.16em;
+
+  /* --- Radii (restrained — editorial, not bubbly) ------------------------ */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 13px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+
+  /* --- Motion ------------------------------------------------------------ */
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+
+@layer base {
+  :root {
+    /* Depth on a dark canvas comes from an inset top highlight plus a long,
+       very soft drop — never from a grey box-shadow. */
+    --lift-1: inset 0 1px 0 0 rgb(255 255 255 / 0.04);
+    --lift-2: inset 0 1px 0 0 rgb(255 255 255 / 0.055), 0 24px 48px -28px rgb(0 0 0 / 0.9);
+    --lift-3: inset 0 1px 0 0 rgb(255 255 255 / 0.07), 0 40px 80px -40px rgb(0 0 0 / 0.95),
+      0 2px 8px -4px rgb(0 0 0 / 0.6);
+
+    /* Masthead height at rest, and the height of the rail it collapses into.
+       Anything that has to clear the header *while scrolled* — sticky offsets,
+       scroll-padding — must key off --rail-h, because by the time an anchor
+       lands the masthead is no longer the thing covering the content. */
+    --nav-h: 4.25rem;
+    --rail-h: 2.875rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--rail-h) + 1.5rem);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.65;
+    letter-spacing: -0.006em;
+    font-feature-settings: 'ss01' on;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-primary);
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  /* The display face is bound to the marketing type steps rather than to the
+     heading elements, because h3/h4 also label panes inside the product UI —
+     where the denser, more neutral Instrument Sans is the right voice.
+     `font-*` utilities still win over this, so the escape hatch survives. */
+  .text-display,
+  .text-h1,
+  .text-h2 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-accent) 30%, transparent);
+    color: var(--color-primary);
+  }
+
+  /* One focus treatment, everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  button,
+  [role='button'] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  ::-webkit-scrollbar {
+    width: 11px;
+    height: 11px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-canvas);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border: 3px solid var(--color-canvas);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4a423d;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ==========================================================================
+   UTILITIES
+   ========================================================================== */
+
+@utility lift-1 {
+  box-shadow: var(--lift-1);
+}
+@utility lift-2 {
+  box-shadow: var(--lift-2);
+}
+@utility lift-3 {
+  box-shadow: var(--lift-3);
+}
+
+/* ==========================================================================
+   DEPTH (real 3D)
+   A tilted plane only reads as dimensional if its contents sit on different Z
+   planes — otherwise the whole thing skews as one flat sheet. `preserve-3d`
+   opens the local 3D context; the `depth-*` steps are the Z ramp, deliberately
+   coarse so layering stays a design decision rather than a slider.
+   ========================================================================== */
+
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Isolates a child back onto its own flat plane — for text that would
+   otherwise shear at steep angles. */
+@utility flatten-3d {
+  transform-style: flat;
+}
+
+@utility depth-1 {
+  transform: translateZ(14px);
+}
+@utility depth-2 {
+  transform: translateZ(32px);
+}
+@utility depth-3 {
+  transform: translateZ(58px);
+}
+/* Pushes *away* — backdrops and plates that should sit behind the surface. */
+@utility depth-back {
+  transform: translateZ(-26px);
+}
+
+/* Fine 1px grid — reads as drafting paper, not as a tech gradient. */
+@utility bg-grid {
+  background-image: linear-gradient(to right, rgb(255 255 255 / 0.028) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.028) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+@utility bg-grid-sm {
+  background-image: linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Film grain. Kills the flat-vector render look at almost zero cost. */
+@utility bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+}
+
+/* Hairline that fades at both ends — for section rules and rails. */
+@utility rule-x {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-line-strong) 18%,
+    var(--color-line-strong) 82%,
+    transparent
+  );
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Instrument Serif italic, used only for emphasis words inside headlines. */
+@utility font-editorial {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.012em;
+}
+
+@utility text-gradient-warm {
+  background: linear-gradient(
+    172deg,
+    var(--color-primary) 34%,
+    color-mix(in oklab, var(--color-primary) 62%, var(--color-muted)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+
+  /* background-clip:text renders nothing in forced-colors mode, so hand the
+     headline back a real colour there. */
+  @media (forced-colors: active) {
+    background: none;
+    color: CanvasText;
+  }
+}
+
+/* ==========================================================================
+   POINTER SPOTLIGHT
+   Driven by --mx / --my / --spot, written straight to the DOM by
+   `usePointerSpotlight` so a hovering cursor never triggers a React render.
+   ========================================================================== */
+
+/* Soft wash inside the card. */
+@utility spotlight-wash {
+  background: radial-gradient(
+    22rem circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in oklab, var(--color-accent) 16%, transparent),
+    transparent 60%
+  );
+  opacity: var(--spot, 0);
+  transition: opacity 420ms var(--ease-out-quint);
+}
+
+/* 1px border that lights only where the cursor is — the gradient is clipped to
+   the padding box, leaving just the edge. */
+@utility spotlight-ring {
+  padding: 1px;
+  background: radial-gradient(
+    15rem circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in oklab, var(--color-accent) 78%, transparent),
+    transparent 62%
+  );
+  opacity: var(--spot, 0);
+  transition: opacity 420ms var(--ease-out-quint);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Outlined display type — used in the marquee so alternate words read as
+   negative space rather than a second weight. */
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--color-muted) 72%, transparent);
+}
+
+@keyframes nova-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes nova-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes nova-ping {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.65;
+  }
+  70%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
